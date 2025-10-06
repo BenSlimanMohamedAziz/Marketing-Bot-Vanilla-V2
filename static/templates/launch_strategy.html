@@ -220,6 +220,40 @@
         </form>
     </div>
 </div>
+
+<!-- Simple View Modal -->
+<div id="viewModal" class="modal-mgmt">
+    <div class="modal-content-mgmt" style="max-width: 600px;">
+        <span class="close">&times;</span>
+        <h3>Content Preview</h3>
+        
+        <div class="content-preview">
+            <div class="preview-header">
+                <span id="previewPlatform" class="platform-tag"></span>
+                <span id="previewType" class="type-tag"></span>
+            </div>
+            
+            <div class="preview-content">
+                <h4>Content:</h4>
+                <div id="previewText">
+                    <!-- Combined caption + hashtags will go here -->
+                </div>
+            </div>
+            
+            <div class="preview-media">
+                <h4>Media:</h4>
+                <div id="previewMedia">
+                    <!-- Media will go here -->
+                </div>
+            </div>
+            
+            <div class="preview-meta">
+                <small>Scheduled: <span id="previewSchedule">Not scheduled</span></small>
+                <small>Status: <span id="previewStatus">Pending</span></small>
+            </div>
+        </div>
+    </div>
+</div>
  <!-- Modal for content mgmnt--> <!-- Modal for content mgmnt--> <!-- Modal for content mgmnt-->
 
  <!-- Email Editor Modal -->
@@ -951,10 +985,17 @@ async function refreshPostsData() {
         
         if (data.posts && data.posts.length > 0) {
             currentPosts = data.posts;
+            
+            // Reset index if it's out of bounds
+            if (currentPostIndex >= currentPosts.length) {
+                currentPostIndex = Math.max(0, currentPosts.length - 1);
+            }
+            
             showNotifications(data.posts);
             return true;
         } else {
             currentPosts = [];
+            currentPostIndex = 0;
             clearAllNotifications();
             displayedNotifications.clear();
             return false;
@@ -1056,7 +1097,22 @@ function onPostRejected(postId) {
 }
 
 async function rejectCurrentPost() {
+    // safety check at the beginning
+    if (!currentPosts.length || currentPostIndex >= currentPosts.length) {
+        console.error('No current post available for rejection');
+        showErrorMessage('No post available for rejection');
+        return;
+    }
+
     const currentPost = currentPosts[currentPostIndex];
+    
+    // Additional check
+    if (!currentPost || !currentPost.id) {
+        console.error('Invalid current post data');
+        showErrorMessage('Invalid post data');
+        return;
+    }
+
     const rejectBtn = document.getElementById('rejectBtn');
     const nextBtn = document.getElementById('nextBtn');
     const regenerateBtn = document.getElementById('regenerateBtn');
@@ -1082,23 +1138,36 @@ async function rejectCurrentPost() {
         nextBtn.classList.remove('disabled');
         regenerateBtn.disabled = true;
         approveBtn.disabled = true;
-        uploadBtn.disabled = true;
-        uploadBtn.style.display = "none";
+        
+        if (uploadBtn) {
+            uploadBtn.disabled = true;
+            uploadBtn.style.display = "none";
+        }
 
         showSuccessMessage('Post rejected successfully!');
         onPostRejected(currentPost.id);
+        
         // Remove the rejected post from local array
         currentPosts.splice(currentPostIndex, 1);
         
-        // Adjust index if needed
+        // Adjust index if needed and refresh data
         if (currentPostIndex > 0) {
             currentPostIndex--;
         }
+        
+        // Refresh posts data to ensure consistency
+        await refreshPostsData();
         
         // Update next button text if no more posts
         const remainingPosts = currentPosts.length - currentPostIndex - 1;
         if (remainingPosts === 0 || currentPosts.length === 0) {
             nextBtn.innerHTML = '<i class="fas fa-check-circle"></i> Done';
+            // Close modal if no more posts
+            if (currentPosts.length === 0) {
+                setTimeout(() => {
+                document.getElementById('approvalModal').style.display = 'none';
+                },1000);
+            }
         } else {
             nextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Next';
         }
@@ -1150,14 +1219,23 @@ async function openPostModal(index) {
     
     if (!refreshed || currentPosts.length === 0) {
         clearAllNotifications();
+        showErrorMessage('No posts available for approval');
         return;
     }
     
+    // Ensure index is within bounds
     if (index >= currentPosts.length) {
         index = 0;
     }
     
     const post = currentPosts[index];
+    
+    // Additional safety check
+    if (!post || !post.id) {
+        showErrorMessage('Invalid post data');
+        return;
+    }
+    
     currentPostIndex = index;
     
     // Set the current modal post key and hide its notification
@@ -1258,7 +1336,25 @@ async function showPostForApproval(post) {
     const postCounter = document.getElementById('postCounter');
     const modalContent = document.getElementById('modalContent');
     const regenerateBtn = document.getElementById('regenerateBtn');
+
+    const approveBtn = document.getElementById('approveBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    // RESET ALL BUTTON STATES FIRST
+    approveBtn.disabled = false;
+    approveBtn.innerHTML = '<i class="fas fa-check"></i> Approve';
+    approveBtn.style.backgroundColor = ''; // Reset to default
     
+    rejectBtn.disabled = false;
+    rejectBtn.innerHTML = '<i class="fas fa-times"></i> Reject';
+    rejectBtn.style.backgroundColor = ''; // Reset to default
+    
+    regenerateBtn.disabled = false;
+    
+    nextBtn.disabled = true;
+    nextBtn.classList.add('disabled');
+
     modalTitle.textContent = `${post.content_type} Approval`;
     postPlatform.textContent = `Platform: ${post.platform}`;
     postTime.textContent = `Scheduled: ${post.scheduled_time}`;
@@ -1279,9 +1375,7 @@ async function showPostForApproval(post) {
     }
     postCounter.textContent = counterText;
     
-    const approveBtn = document.getElementById('approveBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const backBtn = document.getElementById('backBtn');
+
     
     if (remainingPosts === 0) {
         nextBtn.innerHTML = '<i class="fas fa-check-circle"></i> Done';
@@ -1606,6 +1700,9 @@ async function approveCurrentPost() {
         // For other platforms (Facebook, Instagram)
         approveBtn.innerHTML = '<i class="fas fa-check"></i> Approved';
         onPostApproved(currentPost.id);
+    
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('disabled');
         
         if (currentPost.is_past_due) {
             showSuccessMessage('Post Approved, This is a past due post, I will post it for you immediately!');
@@ -2835,6 +2932,7 @@ function renderContentTable(contentItems) {
             mediaIcon = 'fa-book-open';
         } else if (item.content_type.includes('Text')) {
             mediaIcon = 'fa-align-left';
+            item.content_type='Text Posts - Article'
         }
         
         // Determine status badge
@@ -2865,6 +2963,9 @@ function renderContentTable(contentItems) {
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
             <td class="actions-cell">
+               <button class="btn-view" data-id="${item.id}" title="View">
+                    <i class="fas fa-eye"></i>
+                </button>
                 <button class="btn-edit" data-id="${item.id}">
                     <i class="fas fa-edit"></i> Edit
                 </button>
@@ -3232,7 +3333,7 @@ async function saveContentItem(e) {
 }
 
 
-// nex function to check the content type
+/* nex function to check the content type
 function setContentTypeValue(contentType) {
     const typeSelect = document.getElementById('contentType');
     
@@ -3274,13 +3375,13 @@ function setContentTypeValue(contentType) {
     if (typeSelect.options.length > 1) {
         typeSelect.value = typeSelect.options[1].value;
     }
-}
+}*/
 
 
 // Edit content item
 // Update editContentItem function to convert day name back to full date
 // Update editContentItem function to handle Story content
-/*async function editContentItem(contentId) {
+async function editContentItem(contentId) {
     try {
         showLoadingState(true);
         const response = await fetch(`/get_content_item/${contentId}`);
@@ -3394,8 +3495,8 @@ function setContentTypeValue(contentType) {
     } finally {
         showLoadingState(false);
     }
-}*/
-// New editContentItem
+}
+/* New editContentItem
 async function editContentItem(contentId) {
     try {
         showLoadingState(true);
@@ -3506,7 +3607,7 @@ async function editContentItem(contentId) {
     } finally {
         showLoadingState(false);
     }
-}
+}*/
 
 // Delete content item
 async function deleteContentItem(contentId) {
@@ -3753,6 +3854,106 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the first section as active
     document.getElementById('dashboard-section').classList.add('active');
 });
+
+/// For content view
+// Minimal view content function
+async function viewContent(contentId) {
+    try {
+        const response = await fetch(`/get_content_item/${contentId}`);
+        const content = await response.json();
+        
+        // Combine caption and hashtags
+        let textContent = content.caption || '';
+        if (content.hashtags) {
+            textContent += (textContent ? '\n\n' : '') + content.hashtags;
+        }
+        
+        // Update modal
+        document.getElementById('previewPlatform').textContent = content.platform;
+        document.getElementById('previewType').textContent = content.content_type;
+        document.getElementById('previewText').textContent = textContent || 'No content';
+        document.getElementById('previewSchedule').textContent = content.best_time || 'Not scheduled';
+        document.getElementById('previewStatus').textContent = content.status;
+        
+        // Handle media
+        const mediaContainer = document.getElementById('previewMedia');
+        if (content.media_link) {
+            if (content.content_type.includes('Video')) {
+                mediaContainer.innerHTML = `<video controls src="${content.media_link}" style="max-width:100%; max-height:300px; border-radius:8px;"></video>`;
+            } else {
+                mediaContainer.innerHTML = `<img src="${content.media_link}" style="max-width:100%; max-height:300px; border-radius:8px; cursor:pointer;" onclick="openFullscreen('${content.media_link}')">`;
+            }
+        } else {
+            mediaContainer.innerHTML = '<div class="no-media">No media</div>';
+        }
+        
+        document.getElementById('viewModal').style.display = 'block';
+        
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Handle view button clicks
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-view')) {
+        viewContent(e.target.closest('.btn-view').dataset.id);
+    }
+    const modal = document.getElementById('viewModal');
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Close modal
+document.querySelector('#viewModal .close').onclick = () => {
+    document.getElementById('viewModal').style.display = 'none';
+};
+
+// Fullscreen function
+// Simple fullscreen with red X on hover
+function openFullscreen(url) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: black; 
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    modal.innerHTML = `
+        <span style="
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            z-index: 10001;
+            transition: color 0.2s;
+        " 
+        onmouseover="this.style.color='red'" 
+        onmouseout="this.style.color='white'"
+        onclick="this.parentElement.remove()">&times;</span>
+        
+        <img src="${url}" style="max-width: 90%; max-height: 90%;">
+    `;
+    
+    // Close when clicking background
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    };
+    
+    document.body.appendChild(modal);
+}
 </script>
 
 
@@ -3905,6 +4106,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store influencers globally for access
     window.allInfluencers = [];
 });
+
 </script>
 
 </body>
