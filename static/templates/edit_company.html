@@ -359,7 +359,7 @@
                         12. Target Audience - Geographics
                         <span class="tooltip">(Select all that apply)</span>
                     </label>
-                    <div class="audience-category required-checkbox">
+                    <div class="audience-category required-checkbox" data-category="geography" title="Geographics">
                         <h4><i class="fas fa-earth"></i> Geographics</h4>
                         <div class="checkbox-group">
                             {% set geographics = company.target_geographics.split(',') if company.target_geographics else [] %}
@@ -411,28 +411,28 @@
                             <input type="checkbox" name="channels" value="Facebook" {% if 'Facebook' in platforms %}checked{% endif %}>
                             <span class="checkmark"></span>
                         </label>
-                        <label class="checkbox-container"> TikTok
-                            <input type="checkbox" name="channels" value="TikTok" {% if 'TikTok' in platforms %}checked{% endif %}>
+                        <label class="checkbox-container"> TikTok <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="TikTok" {% if 'TikTok' in platforms %}checked{% endif %} disabled>
                             <span class="checkmark"></span>
                         </label>
-                        <label class="checkbox-container"> WhatsApp
-                            <input type="checkbox" name="channels" value="WhatsApp" {% if 'WhatsApp' in platforms %}checked{% endif %}>
+                        <label class="checkbox-container"> WhatsApp <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="WhatsApp" {% if 'WhatsApp' in platforms %}checked{% endif %} disabled>
                             <span class="checkmark"></span>
                         </label>
-                        <label class="checkbox-container"> Telegram
-                            <input type="checkbox" name="channels" value="Telegram" {% if 'Telegram' in platforms %}checked{% endif %}>
+                        <label class="checkbox-container"> Telegram <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="Telegram" {% if 'Telegram' in platforms %}checked{% endif %} disabled>
                             <span class="checkmark"></span>
                         </label>
-                        <label class="checkbox-container"> Snapchat
-                            <input type="checkbox" name="channels" value="Snapchat" {% if 'Snapchat' in platforms %}checked{% endif %}>
+                        <label class="checkbox-container"> Snapchat <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="Snapchat" {% if 'Snapchat' in platforms %}checked{% endif %} disabled>
+                            <span class="checkmark"></span>
+                        </label> 
+                        <label class="checkbox-container"> Threads <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="Threads" {% if 'Threads' in platforms %}checked{% endif %} disabled>
                             <span class="checkmark"></span>
                         </label>
-                        <label class="checkbox-container"> Threads
-                            <input type="checkbox" name="channels" value="Threads" {% if 'Threads' in platforms %}checked{% endif %}>
-                            <span class="checkmark"></span>
-                        </label>
-                        <label class="checkbox-container"> X
-                            <input type="checkbox" name="channels" value="X" {% if 'X' in platforms %}checked{% endif %}>
+                        <label class="checkbox-container"> X <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="X" {% if 'X' in platforms %}checked{% endif %} disabled>
                             <span class="checkmark"></span>
                         </label>
                     </div>
