@@ -135,32 +135,32 @@
                             <input type="checkbox" name="channels" value="Facebook">
                             <span class="checkmark"></span>
                         </label>
-                        <label class="checkbox-container"> TikTok
-                            <input type="checkbox" name="channels" value="TikTok">
+                        <label class="checkbox-container"> TikTok <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="TikTok" disabled>
                             <span class="checkmark"></span>
                         </label>
                      
-                        <label class="checkbox-container"> WhatsApp
-                            <input type="checkbox" name="channels" value="WhatsApp">
+                        <label class="checkbox-container"> WhatsApp <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="WhatsApp" disabled>
                             <span class="checkmark"></span>
                         </label>
                        
-                        <label class="checkbox-container">Telegram
-                            <input type="checkbox" name="channels" value="Telegram">
+                        <label class="checkbox-container">Telegram <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="Telegram" disabled>
                             <span class="checkmark"></span>
                         </label>
                         
-                        <label class="checkbox-container">Snapchat
-                            <input type="checkbox" name="channels" value="Snapchat">
+                        <label class="checkbox-container">Snapchat <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="Snapchat" disabled>
                             <span class="checkmark"></span>
                         </label>
-                         <label class="checkbox-container">Threads
-                            <input type="checkbox" name="channels" value="Threads">
+                         <label class="checkbox-container">Threads <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="Threads" disabled>
                             <span class="checkmark"></span>
                         </label>
 
-                           <label class="checkbox-container"> X
-                            <input type="checkbox" name="channels" value="X">
+                           <label class="checkbox-container"> X <span style="font-size:0.6em;">(Soon)</span>
+                            <input type="checkbox" name="channels" value="X" disabled>
                             <span class="checkmark"></span>
                         </label>
                         
@@ -403,31 +403,31 @@
                     <h4><i class="fas fa-earth"></i> Geographics </h4>
                     <div class="checkbox-group">
                         <label class="checkbox-container"> Local Market (city/town specific)
-                            <input type="checkbox" name="target_geography" value="Local Market (city/town specific)">
+                            <input type="checkbox" name="target_geographic" value="Local Market (city/town specific)">
                             <span class="checkmark"></span>
                         </label>
 
                         <label class="checkbox-container"> Regional (state/province)
-                            <input type="checkbox" name="target_geography" value="Regional (state/province)">
+                            <input type="checkbox" name="target_geographic" value="Regional (state/province)">
                             <span class="checkmark"></span>
                         </label>
                         
                         <label class="checkbox-container"> National
-                            <input type="checkbox" name="target_geography" value="National">
+                            <input type="checkbox" name="target_geographic" value="National">
                             <span class="checkmark"></span>
                         </label>
 
                         <label class="checkbox-container"> International
-                            <input type="checkbox" name="target_geography" value="International">
+                            <input type="checkbox" name="target_geographic" value="International">
                             <span class="checkmark"></span>
                         </label>
 
                         <label class="checkbox-container"> Remote / Digital-Only 
-                            <input type="checkbox" name="target_geography" value="Remote / Digital-Only">
+                            <input type="checkbox" name="target_geographic" value="Remote / Digital-Only">
                             <span class="checkmark"></span>
                         </label>
                     </div>
-                    <div class="error-message" id="target_geography-error"></div>
+                    <div class="error-message" id="target_geographic-error"></div>
                 </div>
                
 
@@ -544,6 +544,46 @@
                 <button type="submit" id="submitBtn">Generate Your Strategy With Chahbander</button>
             </div>
         </form>
+
+
+        <!-- Social Account Linking Modal -->
+        <div id="socialLinkingModal" class="modal">
+            <div class="modal-content social-linking-modal">
+                <div class="modal-header">
+                    <h2>Connect Your Social Accounts</h2>
+                        <p class="modal-subtitle">Link the platforms you selected for your strategy!</p>
+                    <span class="close-modal">&times;</span>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="selected-platforms-container" id="selectedPlatformsContainer">
+                        <!-- Platforms will be dynamically inserted here -->
+                    </div>
+                    
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <h4>Linking Progress &nbsp;</h4>
+                            <div class="progress-text" id="progressText"> 0 of 0 connected</div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="linkingProgressBar" class="progress-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="skipLinkingBtn" class="btn-secondary" style="display:none;">
+                           Cancel
+                        </button>
+                        <button type="button" id="proceedToGenerateBtn" class="btn-primary" disabled>
+                            <i class="fas fa-rocket"></i> Generate Marketing Strategy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
     </div>
 
     <script src="/static/js/Script.js"></script>
