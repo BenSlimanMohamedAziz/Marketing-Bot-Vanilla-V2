@@ -366,6 +366,27 @@ select {
     transform: rotate(45deg);
 }
 
+/* Disabled state */
+.checkbox-container input:disabled~.checkmark {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+    opacity: 0.6;
+}
+
+.checkbox-container input:disabled:checked~.checkmark {
+    background-color: #9ca3af;
+    border-color: #9ca3af;
+}
+
+.checkbox-container:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.checkbox-container:hover input:disabled~.checkmark {
+    border-color: #e5e7eb;
+}
+
 /* Select Dropdown */
 .select-wrapper {
     position: relative;
@@ -841,3 +862,403 @@ select:focus {
     background-color: #ccc;
     cursor: not-allowed;
 }
+
+
+/* Linking accounts */
+
+/* Social Linking Modal Styles */
+/* Modern Social Linking Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.social-linking-modal {
+    max-width: 800px;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.modal-header h2 {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.5rem 0 0 0;
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.close-modal {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2.5rem;
+}
+
+.selected-platforms-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.25rem;
+    margin: 2rem 0;
+}
+
+.platform-card {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.platform-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.platform-card.connected {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+
+.platform-card.connected:hover {
+    border-color: #10b981;
+    transform: translateY(-4px);
+}
+
+.platform-card .platform-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.platform-card:hover .platform-icon {
+    transform: scale(1.1);
+}
+
+.platform-card .platform-name {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.platform-card .platform-status {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    display: inline-block;
+    min-width: 100px;
+}
+
+.platform-card:not(.connected) .platform-status {
+    background: rgba(99, 102, 241, 0.2);
+    color: #8b5cf6;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.platform-card.connected .platform-status {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.platform-card .checkmark_done_link {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    color: #10b981;
+    font-size: 1rem;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.2);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.platform-card.connected .checkmark_done_link {
+    display: flex;
+}
+
+.progress-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.progress-header h4 {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.progress-text {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin: 1rem 0;
+    overflow: hidden;
+    position: relative;
+}
+
+#linkingProgressBar {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+    position: relative;
+}
+
+#linkingProgressBar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.modal-actions .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.modal-actions .btn-primary {
+    background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.modal-actions .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+}
+
+.modal-actions .btn-primary:disabled {
+    background: #475569;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Platform-specific colors with modern gradients */
+.platform-card.linkedin { background: linear-gradient(135deg, rgba(0, 119, 181, 0.1) 0%, rgba(0, 119, 181, 0.05) 100%); }
+.platform-card.facebook { background: linear-gradient(135deg, rgba(24, 119, 242, 0.1) 0%, rgba(24, 119, 242, 0.05) 100%); }
+.platform-card.instagram { background: linear-gradient(135deg, rgba(228, 64, 95, 0.1) 0%, rgba(228, 64, 95, 0.05) 100%); }
+.platform-card.youtube { background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%); }
+.platform-card.tiktok { background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%); }
+.platform-card.whatsapp { background: linear-gradient(135deg, rgba(37, 211, 102, 0.1) 0%, rgba(37, 211, 102, 0.05) 100%); }
+.platform-card.telegram { background: linear-gradient(135deg, rgba(0, 136, 204, 0.1) 0%, rgba(0, 136, 204, 0.05) 100%); }
+.platform-card.snapchat { background: linear-gradient(135deg, rgba(255, 252, 0, 0.1) 0%, rgba(255, 252, 0, 0.05) 100%); }
+.platform-card.threads { background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%); }
+.platform-card.x { background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%); }
+
+.platform-card.linkedin .platform-icon { color: #0077b5; }
+.platform-card.facebook .platform-icon { color: #1877f2; }
+.platform-card.instagram .platform-icon { color: #e4405f; }
+.platform-card.youtube .platform-icon { color: #ff0000; }
+.platform-card.tiktok .platform-icon { color: #000000; }
+.platform-card.whatsapp .platform-icon { color: #25d366; }
+.platform-card.telegram .platform-icon { color: #0088cc; }
+.platform-card.snapchat .platform-icon { color: #fffc00; }
+.platform-card.threads .platform-icon { color: #000000; }
+.platform-card.x .platform-icon { color: #000000; }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        border-radius: 16px;
+    }
+    
+    .modal-header {
+        padding: 1.5rem;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .selected-platforms-container {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+    
+    .platform-card {
+        padding: 1.25rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions .btn-secondary,
+    .modal-actions .btn-primary {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Loading animation for connecting state */
+.platform-card.connecting {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Force platform colors */
+.platform-card .platform-icon i.fa-linkedin { color: #2292ce !important; }
+.platform-card .platform-icon i.fa-facebook { color: #1e70da !important; }
+.platform-card .platform-icon i.fa-instagram { 
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+.platform-card .platform-icon i.fa-google {
+    background: linear-gradient(45deg, #4285f4, #34a853, #fbbc05, #ea4335) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+.platform-card .platform-icon i.fa-youtube { color: #ff0000 !important; }
+.platform-card .platform-icon i.fa-tiktok { 
+    background: linear-gradient(135deg, #000000, #00f2ea, #ff0050, #000000) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+.platform-card .platform-icon i.fa-whatsapp { color: #25d366 !important; }
+.platform-card .platform-icon i.fa-telegram { color: #15a0e6 !important; }
+.platform-card .platform-icon i.fa-snapchat { color: #fffc00 !important; }
+.platform-card .platform-icon i.fa-threads { color: #000000 !important; }
+.platform-card .platform-icon i.fa-x { color: #000000 !important; }
