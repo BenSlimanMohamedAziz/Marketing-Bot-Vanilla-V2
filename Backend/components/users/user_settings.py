@@ -21,7 +21,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}}
 )
 
-
 templates = Jinja2Templates(directory="../static/templates")
 
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY").encode() # LinkedIn Link Account
@@ -961,6 +960,40 @@ async def disconnect_meta(
         release_db_connection(conn)
 
 
+# Route to get user linked accounts
+@router.get("/get_user_linked_accounts")
+async def get_user_linked_accounts(user: dict = Depends(get_current_user)):
+    """Get user's linked accounts for the form modal"""
+    conn = get_db_connection()
+    cursor = get_db_cursor(conn)
+    try:
+        cursor.execute("""
+            SELECT platform, account_id, account_name, created_at
+            FROM user_linked_accounts 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (user["user_id"],))
+        
+        linked_accounts = [
+            {
+                "platform": row[0],
+                "account_id": row[1],
+                "account_name": row[2],
+                "created_at": row[3].strftime("%Y-%m-%d %H:%M") if row[3] else None
+            } for row in cursor.fetchall()
+        ]
+        
+        return {"linked_accounts": linked_accounts}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching linked accounts")
+    finally:
+        if cursor:
+            cursor.close()
+        release_db_connection(conn)
+
+
+# Bg async events starter
 @router.on_event("startup")
 async def startup_event():
     # Schedule periodic checks
