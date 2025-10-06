@@ -469,3 +469,299 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Social account linking state
+let linkedAccounts = new Set();
+let selectedPlatforms = [];
+let userLinkedAccounts = {}; // Store existing linked accounts
+
+// Platform mapping for OAuth
+const platformOAuthMap = {
+    'LinkedIn': 'linkedin',
+    'Facebook': 'facebook',
+    'Instagram': 'instagram', 
+    'YouTube': 'google',
+    'TikTok': 'tiktok',
+    'WhatsApp': 'whatsapp',
+    'Telegram': 'telegram',
+    'Snapchat': 'snapchat',
+    'Threads': 'threads',
+    'X': 'x'
+};
+
+// Get user's existing linked accounts
+async function getUserLinkedAccounts() {
+    try {
+        const response = await fetch('/get_user_linked_accounts');
+        const data = await response.json();
+        return data.linked_accounts || [];
+    } catch (error) {
+        console.error('Error fetching linked accounts:', error);
+        return [];
+    }
+}
+
+// Get selected platforms from form
+function getSelectedPlatforms() {
+    const selected = [];
+    const channelCheckboxes = document.querySelectorAll('input[name="channels"]:checked');
+    
+    channelCheckboxes.forEach(checkbox => {
+        selected.push(checkbox.value);
+    });
+    
+    return selected;
+}
+
+// Show social linking modal
+async function showSocialLinkingModal() {
+    selectedPlatforms = getSelectedPlatforms();
+    
+    if (selectedPlatforms.length === 0) {
+        // No platforms selected, proceed directly
+        submitForm();
+        return;
+    }
+    
+    // Get user's existing linked accounts
+    const existingAccounts = await getUserLinkedAccounts();
+    userLinkedAccounts = {};
+    existingAccounts.forEach(account => {
+        userLinkedAccounts[account.platform] = account;
+    });
+    
+    // Populate the modal with selected platforms
+    const container = document.getElementById('selectedPlatformsContainer');
+    container.innerHTML = '';
+    
+    selectedPlatforms.forEach(platform => {
+        const platformKey = platformOAuthMap[platform]?.toLowerCase();
+        const existingAccount = userLinkedAccounts[platformKey];
+        const isConnected = !!existingAccount;
+        
+        const platformCard = document.createElement('div');
+        platformCard.className = `platform-card ${isConnected ? 'connected' : ''}`;
+        platformCard.dataset.platform = platform;
+        
+        platformCard.innerHTML = `
+            <div class="platform-icon">
+                <i class="fab fa-${platformKey}"></i>
+            </div>
+            <div class="platform-name">${platform}</div>
+            <div class="platform-status">${isConnected ? 'Connected' : 'Click to connect'}</div>
+            <div class="checkmark_done_link">✓</div>
+        `;
+        
+        if (!isConnected) {
+            platformCard.addEventListener('click', () => connectPlatform(platform));
+        }
+        
+        container.appendChild(platformCard);
+        
+        if (isConnected) {
+            linkedAccounts.add(platform);
+        }
+    });
+    
+    updateProceedButton();
+    updateLinkingProgress();
+    
+    // Show modal
+    document.getElementById('socialLinkingModal').style.display = 'block';
+}
+
+// Connect platform (opens OAuth window)
+// Enhanced connect platform with better visual feedback
+function connectPlatform(platform) {
+    const platformCard = document.querySelector(`.platform-card[data-platform="${platform}"]`);
+    const platformKey = platformOAuthMap[platform]?.toLowerCase();
+    
+    // Check if already connected
+    if (linkedAccounts.has(platform) || userLinkedAccounts[platformKey]) {
+        return;
+    }
+    
+    // Show connecting status with animation
+    platformCard.classList.add('connecting');
+    platformCard.querySelector('.platform-status').textContent = 'Connecting...';
+    platformCard.style.opacity = '0.8';
+    platformCard.style.pointerEvents = 'none';
+    
+    // Determine OAuth endpoint based on platform
+    let oauthEndpoint;
+    
+    switch (platformKey) {
+        case 'linkedin':
+            oauthEndpoint = '/linkedin/login?source=form';
+            break;
+        case 'facebook':
+        case 'instagram':
+            oauthEndpoint = '/meta/login?source=form';
+            break;
+        default:
+            // For platforms not yet implemented
+            setTimeout(() => {
+                platformCard.classList.remove('connecting');
+                platformCard.querySelector('.platform-status').textContent = 'Coming Soon';
+                platformCard.style.opacity = '1';
+                platformCard.style.pointerEvents = 'auto';
+            }, 1000);
+            return;
+    }
+    
+    // Open OAuth window
+    const oauthWindow = window.open(
+        oauthEndpoint,
+        `${platform} OAuth`,
+        'width=600,height=700,scrollbars=yes'
+    );
+    
+    // Check for OAuth completion
+    const checkOAuthCompletion = setInterval(() => {
+        if (oauthWindow.closed) {
+            clearInterval(checkOAuthCompletion);
+            platformCard.classList.remove('connecting');
+            platformCard.style.pointerEvents = 'auto';
+            checkPlatformConnection(platform, platformCard);
+        }
+    }, 1000);
+}
+
+// Check if platform was successfully connected
+async function checkPlatformConnection(platform, platformCard) {
+    try {
+        // Refresh linked accounts
+        const existingAccounts = await getUserLinkedAccounts();
+        const platformKey = platformOAuthMap[platform]?.toLowerCase();
+        const isNowConnected = existingAccounts.some(account => account.platform === platformKey);
+        
+        if (isNowConnected) {
+            platformCard.classList.add('connected');
+            platformCard.querySelector('.platform-status').textContent = 'Connected';
+            platformCard.style.opacity = '1';
+            
+            linkedAccounts.add(platform);
+            updateProceedButton();
+            updateLinkingProgress();
+            
+            // Remove click event since it's now connected
+            platformCard.replaceWith(platformCard.cloneNode(true));
+        } else {
+            platformCard.querySelector('.platform-status').textContent = 'Failed - Click to retry';
+            platformCard.style.opacity = '1';
+        }
+    } catch (error) {
+        platformCard.querySelector('.platform-status').textContent = 'Error - Click to retry';
+        platformCard.style.opacity = '1';
+    }
+}
+
+// Update proceed button state
+// Update proceed button state with better text
+function updateProceedButton() {
+    const proceedBtn = document.getElementById('proceedToGenerateBtn');
+    const allConnected = selectedPlatforms.every(platform => {
+        const platformKey = platformOAuthMap[platform]?.toLowerCase();
+        return linkedAccounts.has(platform) || userLinkedAccounts[platformKey];
+    });
+    
+    proceedBtn.disabled = !allConnected;
+    
+    if (allConnected) {
+        proceedBtn.innerHTML = '<i class="fas fa-rocket"></i> Generate Marketing Strategy';
+        proceedBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #34d399 100%)';
+    } else {
+        const connectedCount = linkedAccounts.size + Object.keys(userLinkedAccounts).length;
+        const totalCount = selectedPlatforms.length;
+        const remaining = totalCount - connectedCount;
+        
+        proceedBtn.innerHTML = `<i class="fas fa-link"></i> Connect ${remaining} More to Continue`;
+        proceedBtn.style.background = 'linear-gradient(135deg, #4361ee 0%, #3a56d4 100%)';
+    }
+}
+// Update linking progress
+// Update progress text and bar
+function updateLinkingProgress() {
+    const progressBar = document.getElementById('linkingProgressBar');
+    const progressText = document.getElementById('progressText');
+    const connectedCount = linkedAccounts.size + Object.keys(userLinkedAccounts).length;
+    const totalCount = selectedPlatforms.length;
+    const progress = (connectedCount / selectedPlatforms.length) * 100;
+    
+    progressBar.style.width = `${progress}%`;
+    progressText.textContent = `${connectedCount} of ${totalCount} connected`;
+}
+
+// Submit the form
+function submitForm() {
+    const form = document.getElementById('companyForm');
+    
+    // Submit the form normally (no need to send linked accounts as they're already in user_linked_accounts table)
+    form.submit();
+}
+
+// Modal event handlers
+function setupModalHandlers() {
+    const modal = document.getElementById('socialLinkingModal');
+    const closeBtn = modal.querySelector('.close-modal');
+    const skipBtn = document.getElementById('skipLinkingBtn');
+    const proceedBtn = document.getElementById('proceedToGenerateBtn');
+    
+    // Close modal
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+    
+    // Skip linking
+    skipBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        submitForm();
+    });
+    
+    // Proceed to generation
+    proceedBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        submitForm();
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+// Update form submission to show modal instead
+function updateFormSubmission() {
+    const form = document.getElementById('companyForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Validate the entire form first
+        let isFormValid = true;
+        
+        // Validate all steps
+        for (let i = 0; i < steps.length; i++) {
+            currentStep = i;
+            if (!validateCurrentStep()) {
+                isFormValid = false;
+                showStep(i); // Show the step with errors
+                break;
+            }
+        }
+        
+        if (isFormValid) {
+            showSocialLinkingModal();
+        }
+    });
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    
+    setupModalHandlers();
+    updateFormSubmission();
+
+});
